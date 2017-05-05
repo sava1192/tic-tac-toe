@@ -1,10 +1,9 @@
 import { connect } from 'react-redux';
-import { getLabelFromItems } from '../reducers/items';
 import { clear } from '../actions';
 import Label from './label';
 
 const mapStateToProps = (state) => ({
-  text: getLabelFromItems(state.items),
+  text: state.items.label,
 });
 
 const LabelContainer = connect(

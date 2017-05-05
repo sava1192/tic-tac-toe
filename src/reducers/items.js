@@ -1,62 +1,75 @@
 import { TOGGLE_ITEM, CLEAR } from '../actions';
-// TODO: concider refactoring this reducer
-// looks like 'item' and 'items' are not pure functions
-// so probably initialization of 'defaultItems', 'isX' checking and
-// magic with 'getLabelFromItems' should be moved to action creators.
-const defaultItems = [];
-for (let i = 0; i < 9; i++) {
-  defaultItems.push('');
-}
 
-let isX = false;
-
-const item = (state = '', action) => {
-  switch (action.type) {
-    case TOGGLE_ITEM:
-      isX = !isX;
-      return isX ? 'X' : 'O';
-    default:
-      return state;
+const getLabelFromItems = (items, gridSize) => {
+  // lines
+  for (let i = 0; i < gridSize; i++) {
+    const row = items.slice(i * gridSize, i * gridSize + gridSize);
+    if (row.every(rowItem => row[0] && rowItem === row[0])) {
+      return `${row[0]} WINS`;
+    }
   }
-};
-
-export const getLabelFromItems = (items) => {
-  const wins = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  let current;
-  if (wins.some(win => {
-    current = items[win[0]];
-    return items[win[0]] &&
-      (items[win[0]] === items[win[1]]) &&
-      (items[win[0]] === items[win[2]]);
-  })) {
-    return `${current} WIN!`;
+  // columns
+  for (let i = 0; i < gridSize; i++) {
+    let win = true;
+    for (let j = 0; j < gridSize; j++) {
+      if (!items[i] || items[i] !== items[j * gridSize + i]) {
+        win = false;
+        break;
+      }
+    }
+    if (win) {
+      return `${items[i]} WINS`;
+    }
   }
+  // '\'
+  for (let i = 0; i < gridSize; i++) {
+    if (!items[0] || items[i * gridSize + i] !== items[0]) {
+      break;
+    } else if (i === gridSize - 1) {
+      return `${items[0]} WINS`;
+    }
+  }
+  // '/'
+  for (let i = gridSize; i > 0; i--) {
+    const first = items[gridSize - 1];
+    if (!first || items[(gridSize - i) * gridSize + i - 1] !== first) {
+      break;
+    } else if (i === 1) {
+      return `${first} WINS`;
+    }
+  }
+  // Draw
   if (items.every(fieldItem => fieldItem)) {
     return 'Draw.';
   }
+
   return '';
 };
 
-const items = (state = defaultItems, action) => {
-  const fieldItems = state.slice();
+const items = (state = {}, action) => {
+  const values = state.values && state.values.slice();
+  let label = state.label;
 
   switch (action.type) {
     case TOGGLE_ITEM:
-      if (!fieldItems[action.index] && !getLabelFromItems(fieldItems)) {
-        fieldItems[action.index] = item(fieldItems[action.index], action);
+      label = getLabelFromItems(values, state.gridSize);
+      if (!values[action.index] && !label) {
+        values[action.index] = state.isX ? 'X' : 'O';
+        label = getLabelFromItems(values, state.gridSize);
       }
-      return fieldItems;
+      return {
+        ...state,
+        values,
+        label,
+        isX: !state.isX,
+      };
     case CLEAR:
-      return defaultItems;
+      return {
+        ...state,
+        values: values.map(() => ''),
+        label: '',
+        isX: true,
+      };
     default:
       return state;
   }

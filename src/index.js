@@ -6,8 +6,12 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import reducers from './reducers';
 import './styles.css';
+import { getInitialState } from './services';
+import { GRID_SIZE } from './constants';
 
-const store = createStore(reducers);
+const defaults = getInitialState(GRID_SIZE);
+const store = createStore(reducers, defaults);
+
 render(
   <Provider store={store}>
     <App />

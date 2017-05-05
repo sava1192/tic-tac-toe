@@ -3,7 +3,7 @@ import Field from './field';
 import { toggleItem } from '../actions';
 
 const mapStateToProps = (state) => ({
-  items: state.items,
+  items: state.items.values,
   isClickable: !state.isLabelSet,
 });
 
